@@ -1,4 +1,5 @@
-# 04/15/2021
+# Created 04/15/2021
+# Updated 04/15/2022
 # Vitalii Zhukov
 # COSC 6323
 # Ref.: 
@@ -15,12 +16,12 @@
 #   Another way to build design
 #   LM
 #   explaining results
-# Exercise review
-# EXAMPLE 3 Book example review (Ploynomial model)
+# EXAMPLE 3 Book example review (Polynomial model)
 
-setwd("/Users/apple/Desktop/6323_TA/R_scripts/Lesson11_data/")
+setwd("/Users/apple/Desktop/6323_TA/Git_code/Lesson11_data/")
 
-# An experiment that has each combination of all factor levels applied to the experimental 
+# An experiment that has each combination of all factor levels 
+# applied to the experimental 
 # units is called a factorial experiment.
 
 # EXAMPLE 1
@@ -30,27 +31,36 @@ setwd("/Users/apple/Desktop/6323_TA/R_scripts/Lesson11_data/")
 # install.packages("AlgDesign")
 library(AlgDesign)
 
-# As an example, we'll create full factorial design with three factors (F1, F2, F3) and
-# with 3, 2, and 3 levels, respectively
-gen.factorial(levels = c(3,2,3), nVars = 3, center=TRUE, varNames=c("F1", "F2", "F3"))
+# As an example, we'll create full factorial design with 
+# three factors (F1, F2, F3) and with 3, 2, and 3 levels, 
+# respectively
+
+gen.factorial(levels = c(3,2,3), 
+              nVars = 3, 
+              center=TRUE, 
+              varNames=c("F1", "F2", "F3"))
 # When center = TRUE, the design is symmetric and the three levels will be 
 # signified by -1, 0, and 1
 
 # The common 2^k design (two levels for each factor):
-gen.factorial(levels = 2, nVars = 3, varNames=c("F1", "F2", "F3"))
+gen.factorial(levels = 2, 
+              nVars = 3, 
+              varNames=c("F1", "F2", "F3"))
 
 # the output is a data frame containing the factorial design
 
-# Factorial Design example from Box, Hunter, and Hunter, 
-# Statistics for Experimenters, John Wiley & Sons (1978).
+# Factorial Design example from the book, 
+# Box, Hunter, and Hunter, Statistics for Experimenters, John Wiley & Sons (1978).
 yield <- read.csv('FactorialDesign.csv')[-1]
 
-# Note that this is a two-level, three factor, full factorial design with Yield as 
-# the response (no replicates)
+# Note that this is a two-level, three factor, full factorial 
+# design with Yield as the response (no replicates)
 
-# There are data for two catalysts (0, 1); let's convert it into a factor
+# There are data for two catalysts (0, 1); let's convert it 
+# into a factor
 yield$Catalyst = factor(yield$Catalyst)
-
+yield$Conc = factor(yield$Conc)
+yield$Temp = factor(yield$Temp)
 # A few plots can help us see the data
 plot(yield)
 
@@ -97,25 +107,35 @@ boxplot(Yield ~ Temp*Catalyst, data=yield, ylab="% Yield", xlab="Temp.Catalyst")
 
 # LINEAR MODELS
 # let's model the main effects
-model1 = lm(Yield ~ ., data = yield)
+model1 = glm(Yield ~ ., data = yield)
+# Yield ~ Temp + Conc + Catalyst
 summary(model1)
 
 # Now we'll add two-factor interactions
-model2 = lm(Yield ~ .^2, data = yield)
+
+
+model2 = glm(Yield ~ .^2, data = yield)
+# Same as: Yield ~ Temp*Conc + Catalyst*Temp + Catalyst*Conc
+# Temp*Conc == Temp + Conc + Temp:Conc
+# And Temp*Conc = Temp + Conc + Temp:Conc
 summary(model2)
 
 #compare the two models
 anova(model1, model2)
 
 # Finally, the full model including three-factor interactions
-model3 = lm(Yield ~ .^3, data = yield)
+model3 = glm(Yield ~ .^3, data = yield)
 summary(model3)
 # Note that since we have no replicates, we have no way of assessing 
-# the significance of any of the coefficients of this full model with all interactions
+# the significance of any of the coefficients of this full model 
+# with all interactions
 
-# also note that we could model this with some, but not all of the interactions present
-model4 = lm(Yield ~ Conc + Temp*Catalyst, data = yield)
+# also note that we could model this with some, but not all 
+# of the interactions present
+model4 = glm(Yield ~ Conc + Temp*Catalyst, data = yield)
+model5 = glm(Yield ~ Temp + Conc + Catalyst + Temp:Catalyst, data = yield)
 summary(model4)
+summary(model5)
 # Note that Y ~ X1 * X2 is the same as Y ~ X1 + X2 + X1 : X2
 # and ":" means 'interaction between'
 
@@ -123,7 +143,8 @@ anova(model4,model2)
 
 
 # ANOVA
-# Another way to model the response as a function of the factors is with an anova table.  
+# Another way to model the response as a function of the factors 
+# is with an anova table.  
 # This requires all variables to be factors.
 
 yield.aov = yield
@@ -148,8 +169,8 @@ summary(aov4.out)
 plot(aov4.out, 1)           # residuals versus fitted values
 plot(aov4.out, 2)           # QQ plot
 
-# This provides all of the means commonly calculated in ANOVA analysis 
-# (review all combinations)
+# This provides all of the means commonly calculated in 
+# ANOVA analysis  (review all combinations)
 model.tables(aov2.out, type="means", se=T)
 
 
@@ -186,15 +207,17 @@ ss.data.doe1
 aggregate(response ~ A + B + C,
           FUN = mean, data = ss.data.doe1)
 
-# Get restuls
-doe.model <- lm(response ~ A + B + C +
+# Get results
+doe.model <- glm(response ~ A + B + C +
                     A * B + A * C + B * C +
                     A * B * C,
                 data = ss.data.doe1)
 summary(doe.model)
 
-# Effects of factors C and A are significant, the effort of factor B is not.
-# Interactions among the factors are neither 2-way or 3-way, maknig them insignificant.
+# Effects of factors C and A are significant, the effort of 
+# factor B is not.
+# Interactions among the factors are neither 2-way or 3-way, 
+# maknig them insignificant.
 # We can now simplify the model:
 
 # Simplify the model by excluding nonsignificant effects
@@ -205,7 +228,8 @@ summary(doe.model.2)
 # Obtain model's coefficients
 coef(doe.model.2)
 
-# Obtain estimations for all experimental conditions (including the replications)
+# Obtain estimations for all experimental conditions 
+# (including the replications)
 predict(doe.model.2)
 
 # Compute confidence interval for each factpr
@@ -217,7 +241,7 @@ plot(c(-1,1), ylim = range(ss.data.doe1$response),
      type = "b", pch = 16)
 abline(h = coef(doe.model)[1])
 
-# We can observe that whan factor A is set on the "+" level (1.0)
+# We can observe that when factor A is set on the "+" level (1.0)
 # the outcome is grater than when it is set on the "-" level (-1.0)
 
 # Visualize the main effects in separate plots
@@ -234,7 +258,8 @@ main_effects <- ggplot(prinEF,
     facet_grid(. ~ Factor)
 main_effects
 
-# For factor C situation is different "+" will give us lower outcome
+# For factor C situation is different "+" will give us 
+# lower outcome
 
 # Plot the effects of the interactions
 intEf <- aggregate(response ~ A + C,
@@ -244,7 +269,8 @@ effects_interaction <- ggplot(intEf, aes(x = A, y = response, color = C)) +
     geom_line(aes(group = C))
 effects_interaction
 
-# Both lines do not intersect => there is no interaction between these 2 factors.
+# Both lines do not intersect => there is no 
+# interaction between these 2 factors.
 # In order to max outcome: A should be '+", C - "-"
 
 # Now lets check the residual plot
@@ -256,34 +282,18 @@ box("outer")
 # Check normality of the residuals with a normality test
 shapiro.test(residuals(doe.model.2))
 
-# Residual plot no patterns, QQ plot is not straight enough (potential issues)
+# Residual plot no patterns, QQ plot is not straight enough 
+# (potential issues)
 
-
-# Exercise review
-# Example 1 Fast food franchise
-
-# A fast food franchise is test marketing 3 new menu items in both East and West Coasts of 
-# continental United States. To find out if they the same popularity, 12 franchisee restaurants 
-# from each Coast are randomly chosen for participation in the study. In accordance with the 
-# factorial design, within the 12 restaurants from East Coast, 4 are randomly chosen to test 
-# market the first new menu item, another 4 for the second menu item, and the remaining 4 for the 
-# last menu item. The 12 restaurants from the West Coast are arranged likewise.
-
-# At .05 level of significance, test whether the mean sales volume for the new menu items are all equal. 
-# Decide also whether the mean sales volume of the two coastal regions differs.
-
-# Load data
-df3 <- read.csv("fastfood.csv")
-df3
-
-
-# EXAMPEL 3 Book example review
+# EXAMPLE 3 Book example review
 # Polynomial model
 # "curve fitting". 
-# That is, the interest is in the nature of the fitted response curve rather than in 
+# That is, the interest is in the nature of the fitted 
+# response curve rather than in 
 # the partial regression coefficients.  
 
-# This example concerns the growth of rabbit jawbones. Measurements were made on lengths 
+# This example concerns the growth of rabbit jawbones. 
+# Measurements were made on lengths 
 # of jawbones for rabbits of various ages.
 data_e3 <- data.frame('AGE' = c(0.01,0.2, 0.2, 0.21, 0.23, 0.24, 0.24, 0.25, 0.26, 0.34, 0.41,
                              0.83, 1.09, 1.17, 1.39, 1.53, 1.74, 2.01, 2.12, 2.29, 2.52, 
@@ -298,10 +308,15 @@ plot(data_e3)
 
 # fourth-degree polynomial model 
 model_ex3 <- lm(LENGTH~poly(AGE,4), data=data_e3)
+summary(model_ex3)
+?poly
 
-# now lets tak a look at the fitted model
-plot(data_e3)
-lines(model_ex3)
+# now lets take a look at the type of the fitted model
+ggplot(data_e3, aes(x = AGE, y = LENGTH)) +
+    geom_point() +
+    geom_smooth(method = "lm", col = "blue", se = F) +
+    geom_smooth(method = "loess", col = "red", se = F)
+
 
 # all model stats are the same as previously
 summary(model_ex3)
@@ -317,3 +332,7 @@ lines(data_e3$AGE,predicted.intervals[,3],col='black',lwd=1)
 legend("bottomright",c("Observ.","Predicted"), 
        col=c("black","green"), lwd=3)
 
+#install.packages("sjPlot")
+library(sjPlot)
+plot_model(doe.model, "int")[[1]] +
+    font_size(title = 15,axis_title.x = 15,axis_title.y = 15)
